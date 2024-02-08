@@ -2,9 +2,7 @@ package com.photos.backup.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.photos.backup.constants.DatabaseConstants;
-import com.photos.backup.exception.PhotoNotFoundException;
 import com.photos.backup.pojo.GeoLocation;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +11,6 @@ import lombok.Setter;
 
 import java.io.File;
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 @NoArgsConstructor

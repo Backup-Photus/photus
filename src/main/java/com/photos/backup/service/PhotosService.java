@@ -2,7 +2,6 @@ package com.photos.backup.service;
 
 import com.photos.backup.entity.Photo;
 import com.photos.backup.pojo.PaginationResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
