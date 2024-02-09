@@ -24,12 +24,12 @@ public class PhotoController {
         return new ResponseEntity<>(photosService.save(image,userId), HttpStatus.CREATED);
     }
 
-    @GetMapping("/metadata/{id}")
-    private ResponseEntity<Photo> metadata(@PathVariable("id") String photoId,@RequestParam String userId) {
+    @GetMapping("/metadata/{photoId}")
+    private ResponseEntity<Photo> metadata(@PathVariable("photoId") String photoId,@RequestParam String userId) {
         return new ResponseEntity<>(photosService.get(photoId,userId),HttpStatus.OK);
     }
 
-    @GetMapping("/all/{userId}")
+    @GetMapping("/metadata/all/{userId}")
     private ResponseEntity<PaginationResponse<Photo>> getAllPhotosForUser(@PathVariable("userId") String userId, @RequestParam(defaultValue = "0") int page){
         return new ResponseEntity<>(photosService.getAllForUser(userId,page),HttpStatus.OK);
     }
