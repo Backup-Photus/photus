@@ -5,19 +5,17 @@ import com.photos.backup.entity.Photo;
 import com.photos.backup.entity.User;
 import com.photos.backup.exception.PhotoNotFoundException;
 import com.photos.backup.pojo.PaginationResponse;
+import com.photos.backup.repository.DirRepository;
 import com.photos.backup.repository.PhotosRepository;
 import com.photos.backup.repository.UserRepository;
-import com.photos.backup.utils.ConversionHelperUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
-
 
 import static com.photos.backup.utils.ConversionHelperUtil.fromString;
 
@@ -26,15 +24,16 @@ import static com.photos.backup.utils.ConversionHelperUtil.fromString;
 public class PhotosServiceImpl implements PhotosService {
 
     PhotosRepository photosRepository;
-
     UserRepository userRepository;
+    DirRepository dirRepository;
+
     @Override
     public Photo save(MultipartFile file,String userId) throws IOException {
-        File photoFile = ConversionHelperUtil.convertMultiPartToFile(file);
         User user = UserServiceImpl.unwrapUser(userRepository.findById(fromString(userId)),userId);
-        Photo photo = new Photo(photoFile,user);
-        photosRepository.save(photo);
-        return photo;
+        Photo photoFile =  dirRepository.save(user.getId(),file);
+        photoFile.setUser(user);
+        photosRepository.save(photoFile);
+        return photoFile;
     }
 
     @Override

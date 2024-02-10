@@ -3,6 +3,9 @@ package com.photos.backup.repository;
 import lombok.Getter;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Getter
 public class SystemConfigsRepository {
@@ -32,5 +35,14 @@ public class SystemConfigsRepository {
         return  dataDirExist && directory.canRead();
     }
 
+    public String getTodayDate(){
+        LocalDate today=LocalDate.now();
+        DateTimeFormatter dateTimeFormatter=DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return dateTimeFormatter.format(today);
+    }
+
+    public UUID getNewID(){
+        return UUID.randomUUID();
+    }
 
 }
