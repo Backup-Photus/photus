@@ -3,7 +3,8 @@ package com.photos.backup.service;
 import com.photos.backup.constants.PhotoConstants;
 import com.photos.backup.entity.Photo;
 import com.photos.backup.entity.User;
-import com.photos.backup.exception.PhotoNotFoundException;
+import com.photos.backup.exception.PhotosException;
+import com.photos.backup.exception.PhotosException.PhotosExceptions;
 import com.photos.backup.pojo.PaginationResponse;
 import com.photos.backup.repository.DirRepository;
 import com.photos.backup.repository.PhotosRepository;
@@ -83,7 +84,7 @@ public class PhotosServiceImpl implements PhotosService {
 
     public static Photo unwrapPhoto(Optional<Photo> photo, String photoId){
         if(photo.isPresent()) return  photo.get();
-        else throw  new PhotoNotFoundException(photoId);
+        else throw  new PhotosException(PhotosExceptions.PHOTO_NOT_FOUND,photoId);
     }
 
     private String createNextPageLink(String userId,int page){

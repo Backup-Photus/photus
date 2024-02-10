@@ -1,9 +1,8 @@
 package com.photos.backup.repository;
 
-
-import com.photos.backup.constants.FileOperationConstants;
 import com.photos.backup.entity.Photo;
-import com.photos.backup.exception.FileOperationsExceptions;
+import com.photos.backup.exception.FileException;
+import com.photos.backup.exception.FileException.FileOperationExceptions;
 import com.photos.backup.utils.ConversionHelperUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,12 +19,12 @@ public class DirRepository {
     private SystemConfigsRepository systemConfigsRepository;
 
     void canSave(long size){
-        if(!systemConfigsRepository.isHasWritePermission()) throw  new FileOperationsExceptions(FileOperationConstants.NO_WRITE_ACCESS_IN_DATA_DIR);
+        if(!systemConfigsRepository.isHasWritePermission()) throw  new FileException(FileOperationExceptions.NO_WRITE_ACCESS_IN_DATA_DIR);
 
     }
 
     void canRead(Path path){
-        if(!systemConfigsRepository.isHasReadPermission()) throw  new FileOperationsExceptions(FileOperationConstants.NO_READ_ACCESS_IN_DATA_DIR);
+        if(!systemConfigsRepository.isHasReadPermission()) throw  new FileException(FileOperationExceptions.NO_READ_ACCESS_IN_DATA_DIR);
     }
 
     public Photo save(UUID userId , MultipartFile file) throws IOException {
@@ -57,7 +56,7 @@ public class DirRepository {
         canRead(filepath);
         File file = new File(filepath.toUri());
         if(file.exists()) return  file;
-        throw  new FileOperationsExceptions(FileOperationConstants.NO_FILE_EXIST);
+        throw  new FileException(FileOperationExceptions.NO_FILE_EXIST);
     }
 
     public void delete(String path){
@@ -65,7 +64,7 @@ public class DirRepository {
         canRead(filepath);
         File file = new File(filepath.toUri());
         if (!file.exists() || !file.delete()) {
-            throw  new FileOperationsExceptions(FileOperationConstants.NO_FILE_EXIST);
+            throw  new FileException(FileOperationExceptions.NO_FILE_EXIST);
         }
     }
 
@@ -82,7 +81,7 @@ public class DirRepository {
         boolean created = directory.isDirectory() && directory.exists();
         if(!created) created = directory.mkdirs();
         if(!created)
-            throw  new FileOperationsExceptions(FileOperationConstants.UNKNOWN_DIR_EXCEPTION);
+            throw  new FileException(FileOperationExceptions.UNKNOWN_DIR_EXCEPTION);
         return directory;
     }
 
@@ -90,7 +89,7 @@ public class DirRepository {
         File file = new File(filePath.toUri());
         boolean created = file.isFile() && file.exists();
         if(!created) created = file.createNewFile();
-        if(!created) throw new FileOperationsExceptions(FileOperationConstants.UNKNOWN_FILE_EXCEPTION);
+        if(!created) throw new FileException(FileOperationExceptions.UNKNOWN_FILE_EXCEPTION);
         return file;
     }
 }

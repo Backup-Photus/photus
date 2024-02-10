@@ -1,8 +1,8 @@
 package com.photos.backup.utils;
 
-import com.photos.backup.constants.FileOperationConstants;
+import com.photos.backup.exception.FileException.FileOperationExceptions;
 import com.photos.backup.constants.ImageType;
-import com.photos.backup.exception.FileOperationsExceptions;
+import com.photos.backup.exception.FileException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -32,6 +32,6 @@ public class ConversionHelperUtil {
                 return imageType.getFileExtension();
             }
         }
-        throw new FileOperationsExceptions(FileOperationConstants.NO_SUCH_FILE_TYPE);
+        throw new FileException(FileOperationExceptions.NO_SUCH_FILE_TYPE);
     }
 }

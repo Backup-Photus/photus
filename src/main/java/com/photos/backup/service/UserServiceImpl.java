@@ -1,7 +1,7 @@
 package com.photos.backup.service;
 
 import com.photos.backup.entity.User;
-import com.photos.backup.exception.UserNotFoundException;
+import com.photos.backup.exception.UsersException;
 import com.photos.backup.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
 
     public static User unwrapUser(Optional<User> user,String userId){
         if(user.isPresent()) return user.get();
-        else throw new UserNotFoundException(userId);
+        else throw new UsersException(UsersException.UserExceptions.USER_NOT_FOUND,userId);
     }
 }
 
