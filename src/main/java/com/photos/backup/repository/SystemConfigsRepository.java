@@ -13,11 +13,16 @@ public class SystemConfigsRepository {
     private final boolean dataDirExist;
     private final boolean hasReadPermission;
     private final boolean hasWritePermission;
-    public SystemConfigsRepository(String dataDirPath){
-       this.dataDirPath=dataDirPath;
-       dataDirExist=checkForDataDirExist();
-       hasReadPermission = checkForReadPermissions();
-       hasWritePermission =  checkForWritePermissions();
+    private final int port;
+    private final String baseUrl;
+
+    public SystemConfigsRepository(String dataDirPath,String port,String baseUrl){
+        this.port= Integer.parseInt(port);
+        this.baseUrl=baseUrl;
+        this.dataDirPath=dataDirPath;
+        dataDirExist=checkForDataDirExist();
+        hasReadPermission = checkForReadPermissions();
+        hasWritePermission =  checkForWritePermissions();
     }
 
 
@@ -43,6 +48,10 @@ public class SystemConfigsRepository {
 
     public UUID getNewID(){
         return UUID.randomUUID();
+    }
+
+    public String getBaseUrlWithPort(){
+        return baseUrl+":"+port;
     }
 
 }

@@ -4,16 +4,14 @@ package com.photos.backup.repository;
 import com.photos.backup.constants.FileOperationConstants;
 import com.photos.backup.entity.Photo;
 import com.photos.backup.exception.FileOperationsExceptions;
+import com.photos.backup.utils.ConversionHelperUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -21,20 +19,26 @@ public class DirRepository {
 
     private SystemConfigsRepository systemConfigsRepository;
 
-    boolean canSave(long size){
-        return  true;
+    void canSave(long size){
+        if(!systemConfigsRepository.isHasWritePermission()) throw  new FileOperationsExceptions(FileOperationConstants.NO_WRITE_ACCESS_IN_DATA_DIR);
+
+    }
+
+    void canRead(Path path){
+        if(!systemConfigsRepository.isHasReadPermission()) throw  new FileOperationsExceptions(FileOperationConstants.NO_READ_ACCESS_IN_DATA_DIR);
     }
 
     public Photo save(UUID userId , MultipartFile file) throws IOException {
-    Path dirPath = getDirectoryForFileSaving(userId);
-    UUID uuid = systemConfigsRepository.getNewID();
+        canSave(file.getSize());
+        Path dirPath = getDirectoryForFileSaving(userId);
+        UUID uuid = systemConfigsRepository.getNewID();
 
-    String fileExtension =  Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[1];
-    String filename = uuid + "." + fileExtension;
+        String fileExtension = ConversionHelperUtil.fileExtension(file.getContentType());
+        String filename = uuid + fileExtension;
 
-    File savingDirectory = createDirectory(dirPath);
-    File savingFile = createFile(savingDirectory.toPath().resolve(filename));
-    file.transferTo(savingFile);
+        File savingDirectory = createDirectory(dirPath);
+        File savingFile = createFile(savingDirectory.toPath().resolve(filename));
+        file.transferTo(savingFile);
 
     return new Photo.Builder()
             .id(uuid)
@@ -49,11 +53,20 @@ public class DirRepository {
     }
 
     public File read(String path){
-        return  null;
+        Path filepath =  Paths.get(path);
+        canRead(filepath);
+        File file = new File(filepath.toUri());
+        if(file.exists()) return  file;
+        throw  new FileOperationsExceptions(FileOperationConstants.NO_FILE_EXIST);
     }
 
     public void delete(String path){
-        
+        Path filepath =  Paths.get(path);
+        canRead(filepath);
+        File file = new File(filepath.toUri());
+        if (!file.exists() || !file.delete()) {
+            throw  new FileOperationsExceptions(FileOperationConstants.NO_FILE_EXIST);
+        }
     }
 
     private Path getDirectoryForFileSaving(UUID userId){
@@ -79,24 +92,5 @@ public class DirRepository {
         if(!created) created = file.createNewFile();
         if(!created) throw new FileOperationsExceptions(FileOperationConstants.UNKNOWN_FILE_EXCEPTION);
         return file;
-    }
-
-    private boolean cloneFile(File sourceFile,File destinationFile)
-    {
-        try (FileInputStream inputStream = new FileInputStream(sourceFile);
-             FileOutputStream outputStream = new FileOutputStream(destinationFile)) {
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
-            System.out.println("File copied successfully.");
-            return true;
-        } catch (IOException e) {
-            System.err.println("Failed to copy file: " + e.getMessage());
-            return false;
-        }
     }
 }

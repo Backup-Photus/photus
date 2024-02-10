@@ -51,6 +51,12 @@ public class Photo {
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
 
+    @Transient
+    private String downloadLink;
+
+    @Transient
+    private String thumbnailLink;
+
     private Photo(Builder builder) {
         id = builder.id;
         path = builder.path;
