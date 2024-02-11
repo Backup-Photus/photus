@@ -4,4 +4,9 @@ public class PhotoConstants {
 
     public static final int PAGE_SIZE=15;
 
+    public static final int THUMBNAIL_SIZE_X=160;
+
+    public static final int THUMBNAIL_SIZE_Y=160;
+
+    public static final String THUMBNAIL_DIRECTORY_NAME=".thumbnail";
 }

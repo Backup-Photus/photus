@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.photos.backup.constants.DatabaseConstants;
 import com.photos.backup.pojo.GeoLocation;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 import java.util.UUID;
@@ -15,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Builder
 @Setter
 @Entity(name = DatabaseConstants.PHOTOS_DATABASE_NAME)
 public class Photo {
@@ -25,6 +23,10 @@ public class Photo {
     @JsonIgnore
     @Column(nullable = false)
     private String path;
+
+    @JsonIgnore
+    @Column(nullable = false)
+    private String thumbnailPath;
 
     @Column(nullable = false)
     private String originalName;
@@ -57,78 +59,4 @@ public class Photo {
     @Transient
     private String thumbnailLink;
 
-    private Photo(Builder builder) {
-        id = builder.id;
-        path = builder.path;
-        originalName = builder.originalName;
-        size = builder.size;
-        location = builder.location;
-        caption = builder.caption;
-        creationDate = builder.creationDate;
-        uploadDate = builder.uploadDate;
-        modificationDate = builder.modificationDate;
-        user = builder.user;
-    }
-    public static  class Builder {
-        private UUID id;
-        private String path;
-        private String originalName;
-        private long size;
-        private GeoLocation location;
-        private String caption;
-        private Date creationDate;
-        private Date uploadDate;
-        private Date modificationDate;
-        private User user;
-
-        public Builder() {
-        }
-
-        public Builder path(String val) {
-            path = val;
-            return this;
-        }
-
-        public Builder id(UUID val){
-            id=val;
-            return  this;
-        }
-
-        public Builder originalName(String val) {
-            originalName = val;
-            return this;
-        }
-
-        public Builder size(long val) {
-            size = val;
-            return this;
-        }
-
-        public Builder location(GeoLocation val) {
-            location = val;
-            return this;
-        }
-
-        public Builder caption(String val) {
-            caption = val;
-            return this;
-        }
-
-        public Builder modificationDate(Date val) {
-            modificationDate = val;
-            return this;
-        }
-
-        public Builder user(User val) {
-            user = val;
-            return this;
-        }
-
-        public Photo build() {
-            this.creationDate = new Date(System.currentTimeMillis());
-            this.uploadDate = this.creationDate;
-            this.id = UUID.randomUUID();
-            return new Photo(this);
-        }
-    }
 }

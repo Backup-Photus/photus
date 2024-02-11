@@ -1,16 +1,19 @@
 package com.photos.backup.repository;
 
+import com.photos.backup.constants.PhotoConstants;
 import com.photos.backup.entity.Photo;
 import com.photos.backup.exception.FileException;
 import com.photos.backup.exception.FileException.FileOperationExceptions;
 import com.photos.backup.utils.ConversionHelperUtil;
 import lombok.AllArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -27,8 +30,9 @@ public class DirRepository {
         if(!systemConfigsRepository.isHasReadPermission()) throw  new FileException(FileOperationExceptions.NO_READ_ACCESS_IN_DATA_DIR);
     }
 
-    public Photo save(UUID userId , MultipartFile file) throws IOException {
+    public Photo savePhoto(UUID userId , MultipartFile file) throws IOException {
         canSave(file.getSize());
+        Date today =  new Date(System.currentTimeMillis());
         Path dirPath = getDirectoryForFileSaving(userId);
         UUID uuid = systemConfigsRepository.getNewID();
 
@@ -39,14 +43,28 @@ public class DirRepository {
         File savingFile = createFile(savingDirectory.toPath().resolve(filename));
         file.transferTo(savingFile);
 
-    return new Photo.Builder()
+        Path thumbnailPath = saveThumbnail(savingFile,userId,filename);
+
+    return Photo.builder()
             .id(uuid)
             .size(file.getSize())
             .originalName(file.getOriginalFilename())
             .path(savingFile.getPath())
+            .thumbnailPath(thumbnailPath.toString())
+            .creationDate(today)
+            .uploadDate(today)
             .build();
     }
 
+    public Path saveThumbnail(File file,UUID userId,String photoName) throws IOException {
+        Path dir = getDirectoryForFileSaving(userId);
+        File thumbnailDir = createDirectory(dir.resolve(PhotoConstants.THUMBNAIL_DIRECTORY_NAME));
+        Path photoThumbnailPath = thumbnailDir.toPath().resolve(photoName);
+        Thumbnails.of(file)
+                .size(PhotoConstants.THUMBNAIL_SIZE_X, PhotoConstants.THUMBNAIL_SIZE_Y)
+                .outputQuality(0.8).toFile(photoThumbnailPath.toString());
+        return photoThumbnailPath;
+    }
     public File update(String path,File file){
         return  null;
     }

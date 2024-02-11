@@ -1,5 +1,6 @@
 package com.photos.backup.repository;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
 import java.io.File;
@@ -40,16 +41,19 @@ public class SystemConfigsRepository {
         return  dataDirExist && directory.canRead();
     }
 
+    @JsonIgnore
     public String getTodayDate(){
         LocalDate today=LocalDate.now();
         DateTimeFormatter dateTimeFormatter=DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return dateTimeFormatter.format(today);
     }
 
+    @JsonIgnore
     public UUID getNewID(){
         return UUID.randomUUID();
     }
 
+    @JsonIgnore
     public String getBaseUrlWithPort(){
         return baseUrl+":"+port;
     }

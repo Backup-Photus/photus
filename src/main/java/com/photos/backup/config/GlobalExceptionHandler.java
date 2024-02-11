@@ -9,15 +9,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        ErrorResponse errorResponse =  new ErrorResponse.Builder()
-                .error(e.getMessage())
-                .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .messages(HttpStatus.INTERNAL_SERVER_ERROR.name())
-                .build();
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+//        ErrorResponse errorResponse =  new ErrorResponse.Builder()
+//                .error(e.getMessage())
+//                .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+//                .messages(HttpStatus.INTERNAL_SERVER_ERROR.name())
+//                .build();
+//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ErrorResponse> handleUsersExceptions(ApplicationException exception) {

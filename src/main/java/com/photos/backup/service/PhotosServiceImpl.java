@@ -6,6 +6,7 @@ import com.photos.backup.entity.User;
 import com.photos.backup.exception.PhotosException;
 import com.photos.backup.exception.PhotosException.PhotosExceptions;
 import com.photos.backup.pojo.PaginationResponse;
+import com.photos.backup.pojo.PaginationResponse.PaginationResponseBuilder;
 import com.photos.backup.repository.DirRepository;
 import com.photos.backup.repository.PhotosRepository;
 import com.photos.backup.repository.SystemConfigsRepository;
@@ -19,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,7 +39,7 @@ public class PhotosServiceImpl implements PhotosService {
     @Override
     public Photo save(MultipartFile file,String userId) throws IOException {
         User user = UserServiceImpl.unwrapUser(userRepository.findById(fromString(userId)),userId);
-        Photo photoFile =  dirRepository.save(user.getId(),file);
+        Photo photoFile =  dirRepository.savePhoto(user.getId(),file);
         photoFile.setUser(user);
         photosRepository.save(photoFile);
         return photoFile;
@@ -44,7 +47,8 @@ public class PhotosServiceImpl implements PhotosService {
 
     @Override
     public Photo getMetadata(String photoId, String userId) {
-        return unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        Photo photo = unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        return addLinks(photo);
     }
 
     @Override
@@ -58,32 +62,38 @@ public class PhotosServiceImpl implements PhotosService {
     public PaginationResponse<Photo> getMetadataAllForUser(String userId, int page) {
         PageRequest pageRequest= PageRequest.of(page, PhotoConstants.PAGE_SIZE);
         Page<Photo> photos = photosRepository.findAllByUserId(fromString(userId),pageRequest);
-        for(Photo photo:photos.getContent()){
-            photo.setDownloadLink(createDownloadLink(photo.getId()));
-            photo.setThumbnailLink(createThumbnailLink(photo.getId()));
+        List<Photo> content = new ArrayList<>(photos.getContent());
+        for(int index=0;index<photos.getContent().size();index++){
+            content.set(index,addLinks(content.get(index)));
         }
-        PaginationResponse.Builder<Photo> responseBuilder = new PaginationResponse.Builder<Photo>()
-                .setPageSize(PhotoConstants.PAGE_SIZE)
-                .setData(photos.getContent())
-                .setCurrentPage(page)
-                .setIsEndPage(photos.isLast());
+        PaginationResponseBuilder<Photo> responseBuilder = PaginationResponse.<Photo>builder()
+                .pageSize(PhotoConstants.PAGE_SIZE)
+                .data(content)
+                .currentPage(page)
+                .isEndPage(photos.isLast());
         if(!photos.isLast()) {
             responseBuilder = responseBuilder
-                    .setNextPage(page + 1)
-                    .setNextPageLink(createNextPageLink(userId,page));
+                    .nextPage((long) (page + 1))
+                    .nextPageLink(createNextPageLink(userId,page));
 
         }
         return responseBuilder.build();
     }
 
     @Override
-    public File get(String photoId) {
+    public File get(String photoId,String userId) {
         Photo photo =  unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
         return dirRepository.read(photo.getPath());
     }
 
+    @Override
+    public File getThumbnail(String photoId, String userId) {
+        Photo photo = unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        return dirRepository.read(photo.getThumbnailPath());
+    }
+
     public static Photo unwrapPhoto(Optional<Photo> photo, String photoId){
-        if(photo.isPresent()) return  photo.get();
+        if(photo.isPresent()) return photo.get();
         else throw  new PhotosException(PhotosExceptions.PHOTO_NOT_FOUND,photoId);
     }
 
@@ -93,6 +103,11 @@ public class PhotosServiceImpl implements PhotosService {
         return baseUrl+"/all/"+userId+"?page="+nextPage;
     }
 
+    private  Photo addLinks(Photo photo){
+        photo.setDownloadLink(createDownloadLink(photo.getId()));
+        photo.setThumbnailLink(createThumbnailLink(photo.getId()));
+        return photo;
+    }
     private String createDownloadLink(UUID uuid){
         return systemConfigsRepository.getBaseUrlWithPort() + "/" + Paths.get("photo")
                 .resolve(uuid.toString());

@@ -31,7 +31,7 @@ public class PhotoController {
 
     @GetMapping("/{photoId}")
     private ResponseEntity<InputStreamResource> get(@PathVariable String photoId,@RequestParam String userId) throws IOException {
-        File file = photosService.get(photoId);
+        File file = photosService.get(photoId,userId);
         Photo photo = photosService.getMetadata(photoId,userId);
         InputStream inputStream = new FileInputStream(file);
 
@@ -45,8 +45,18 @@ public class PhotoController {
     }
 
     @GetMapping("/thumbnail/{photoId}")
-    private String getThumbnail(@PathVariable String photoId,@RequestParam String userId){
-        return "THUMBNAIL_CREATED";
+    private ResponseEntity<InputStreamResource> getThumbnail(@PathVariable String photoId,@RequestParam String userId) throws IOException {
+        File file = photosService.getThumbnail(photoId,userId);
+        Photo photo = photosService.getMetadata(photoId,userId);
+        InputStream inputStream = new FileInputStream(file);
+
+        HttpHeaders headers =  new HttpHeaders();
+        headers.setContentType(MediaType.valueOf(Files.probeContentType(Paths.get(file.getPath()))));
+        headers.setContentDispositionFormData("attachment", photo.getOriginalName());
+
+        InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+
+        return new ResponseEntity<>(inputStreamResource, headers, HttpStatus.OK);
     }
     @GetMapping("/metadata/{photoId}")
     private ResponseEntity<Photo> metadata(@PathVariable String photoId,@RequestParam String userId) {

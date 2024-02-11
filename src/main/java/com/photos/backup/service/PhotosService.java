@@ -12,7 +12,9 @@ public interface PhotosService {
     Photo getMetadata(String id, String userId);
     void delete(String id);
     PaginationResponse<Photo> getMetadataAllForUser(String userId, int page);
-    File get(String photoId);
+    File get(String photoId,String userId);
+
+    File getThumbnail(String photoId,String userId);
 
 
 }
