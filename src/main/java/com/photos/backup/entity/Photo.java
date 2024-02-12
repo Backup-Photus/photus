@@ -1,6 +1,5 @@
 package com.photos.backup.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.photos.backup.constants.DatabaseConstants;
 import com.photos.backup.pojo.GeoLocation;
 import jakarta.persistence.*;
@@ -20,11 +19,9 @@ public class Photo {
     @Id
     private UUID id;
 
-    @JsonIgnore
     @Column(nullable = false)
     private String path;
 
-    @JsonIgnore
     @Column(nullable = false)
     private String thumbnailPath;
 
@@ -45,10 +42,8 @@ public class Photo {
     @Column(nullable = false)
     private Date uploadDate;
 
-    @JsonIgnore
     private Date modificationDate;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false)
     private User user;

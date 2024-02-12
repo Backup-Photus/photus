@@ -1,7 +1,7 @@
 package com.photos.backup.config;
 
 import com.photos.backup.exception.ApplicationException;
-import com.photos.backup.pojo.ErrorResponse;
+import com.photos.backup.dto.ErrorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 //    }
 
     @ExceptionHandler(ApplicationException.class)
-    public ResponseEntity<ErrorResponse> handleUsersExceptions(ApplicationException exception) {
+    public ResponseEntity<ErrorDTO> handleUsersExceptions(ApplicationException exception) {
         return new ResponseEntity<>(exception.toErrorResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

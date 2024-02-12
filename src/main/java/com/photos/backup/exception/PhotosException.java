@@ -1,7 +1,7 @@
 package com.photos.backup.exception;
 
 import com.photos.backup.pojo.ApplicationErrors;
-import com.photos.backup.pojo.ErrorResponse;
+import com.photos.backup.dto.ErrorDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,11 +12,11 @@ public class PhotosException extends  ApplicationException{
     public String id;
 
     @Override
-    public ErrorResponse toErrorResponse() {
-        return new ErrorResponse.Builder()
+    public ErrorDTO toErrorResponse() {
+        return ErrorDTO.builder()
                 .error(exceptions.getMessage())
                 .errorCode(exceptions.getValue())
-                .messages(exceptions.getMessage())
+                .message(exceptions.getMessage())
                 .build();
     }
 

@@ -57,7 +57,7 @@ public class DirRepository {
     }
 
     public Path saveThumbnail(File file,UUID userId,String photoName) throws IOException {
-        Path dir = getDirectoryForFileSaving(userId);
+        Path dir = getDatDirectory(userId);
         File thumbnailDir = createDirectory(dir.resolve(PhotoConstants.THUMBNAIL_DIRECTORY_NAME));
         Path photoThumbnailPath = thumbnailDir.toPath().resolve(photoName);
         Thumbnails.of(file)
@@ -86,10 +86,14 @@ public class DirRepository {
         }
     }
 
-    private Path getDirectoryForFileSaving(UUID userId){
+    private Path getDatDirectory(UUID userId){
         Path directoryPath = Paths
                 .get(systemConfigsRepository.getDataDirPath())
-                .resolve(userId.toString())
+                .resolve(userId.toString());
+        return directoryPath.toAbsolutePath();
+    }
+    private Path getDirectoryForFileSaving(UUID userId){
+        Path directoryPath = getDatDirectory(userId)
                 .resolve(systemConfigsRepository.getTodayDate());
         return directoryPath.toAbsolutePath();
     }

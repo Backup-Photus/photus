@@ -1,12 +1,12 @@
 package com.photos.backup.service;
 
 import com.photos.backup.constants.PhotoConstants;
+import com.photos.backup.dto.PhotoDTO;
+import com.photos.backup.dto.PhotosPaginationDTO;
 import com.photos.backup.entity.Photo;
 import com.photos.backup.entity.User;
 import com.photos.backup.exception.PhotosException;
 import com.photos.backup.exception.PhotosException.PhotosExceptions;
-import com.photos.backup.pojo.PaginationResponse;
-import com.photos.backup.pojo.PaginationResponse.PaginationResponseBuilder;
 import com.photos.backup.repository.DirRepository;
 import com.photos.backup.repository.PhotosRepository;
 import com.photos.backup.repository.SystemConfigsRepository;
@@ -20,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,18 +36,18 @@ public class PhotosServiceImpl implements PhotosService {
     SystemConfigsRepository systemConfigsRepository;
 
     @Override
-    public Photo save(MultipartFile file,String userId) throws IOException {
+    public PhotoDTO save(MultipartFile file, String userId) throws IOException {
         User user = UserServiceImpl.unwrapUser(userRepository.findById(fromString(userId)),userId);
         Photo photoFile =  dirRepository.savePhoto(user.getId(),file);
         photoFile.setUser(user);
         photosRepository.save(photoFile);
-        return photoFile;
+        return new PhotoDTO(photoFile,getDownloadBaseUrl(),getThumbnailBaseUrl());
     }
 
     @Override
-    public Photo getMetadata(String photoId, String userId) {
+    public PhotoDTO getMetadata(String photoId, String userId) {
         Photo photo = unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
-        return addLinks(photo);
+        return new PhotoDTO(photo,getDownloadBaseUrl(),getThumbnailBaseUrl());
     }
 
     @Override
@@ -59,14 +58,11 @@ public class PhotosServiceImpl implements PhotosService {
     }
 
     @Override
-    public PaginationResponse<Photo> getMetadataAllForUser(String userId, int page) {
+    public PhotosPaginationDTO<PhotoDTO> getMetadataAllForUser(String userId, int page) {
         PageRequest pageRequest= PageRequest.of(page, PhotoConstants.PAGE_SIZE);
         Page<Photo> photos = photosRepository.findAllByUserId(fromString(userId),pageRequest);
-        List<Photo> content = new ArrayList<>(photos.getContent());
-        for(int index=0;index<photos.getContent().size();index++){
-            content.set(index,addLinks(content.get(index)));
-        }
-        PaginationResponseBuilder<Photo> responseBuilder = PaginationResponse.<Photo>builder()
+        List<PhotoDTO> content = photos.getContent().stream().map(e->new PhotoDTO(e,getDownloadBaseUrl(),getThumbnailBaseUrl())).toList();
+        PhotosPaginationDTO.PhotosPaginationDTOBuilder<PhotoDTO> responseBuilder = PhotosPaginationDTO.<PhotoDTO>builder()
                 .pageSize(PhotoConstants.PAGE_SIZE)
                 .data(content)
                 .currentPage(page)
@@ -114,5 +110,12 @@ public class PhotosServiceImpl implements PhotosService {
     }
     private String createThumbnailLink(UUID uuid){
         return systemConfigsRepository.getBaseUrlWithPort() + "/" + Paths.get("photo"  ,"thumbnail",  uuid.toString());
+    }
+
+    private String getThumbnailBaseUrl(){
+        return systemConfigsRepository.getBaseUrlWithPort() + "/photo/" ;
+    }
+    private  String getDownloadBaseUrl(){
+        return systemConfigsRepository.getBaseUrlWithPort() + "/photo/thumbnail/";
     }
 }
