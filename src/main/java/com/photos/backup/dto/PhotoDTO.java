@@ -16,7 +16,7 @@ public record PhotoDTO(
         String caption,
         Date uploadDate,
         String downloadLink,
-        String thumbnailLink) {
+        String thumbnailLink)  {
     public PhotoDTO(Photo photo,String downloadBaseUrl,String thumbnailBaseUrl){
         this(
                 photo.getId(),

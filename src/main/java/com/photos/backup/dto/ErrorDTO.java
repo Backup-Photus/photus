@@ -7,5 +7,12 @@ import lombok.Builder;
 public record ErrorDTO (
     int errorCode,
     String error,
-    String message
-){}
+    String message,
+    Boolean hasError
+)  {
+
+    @Override
+    public Boolean hasError() {
+        return hasError == null;
+    }
+}
