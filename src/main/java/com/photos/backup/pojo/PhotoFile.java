@@ -20,7 +20,7 @@ public class PhotoFile {
     @NotNull @NotBlank
     String userId;
 
-    @NotNull
+//    @NotNull
     Date createdDate;
 
     Double latitude;

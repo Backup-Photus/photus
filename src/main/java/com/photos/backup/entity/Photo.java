@@ -1,7 +1,6 @@
 package com.photos.backup.entity;
 
 import com.photos.backup.constants.DatabaseConstants;
-import com.photos.backup.pojo.GeoLocation;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,10 +28,6 @@ public class Photo {
     private String originalName;
 
     private long size;
-
-    @Embedded
-    private GeoLocation location;
-
 
     private String caption;
 

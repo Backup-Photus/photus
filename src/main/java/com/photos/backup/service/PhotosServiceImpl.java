@@ -3,14 +3,13 @@ package com.photos.backup.service;
 import com.photos.backup.constants.PhotoConstants;
 import com.photos.backup.dto.PhotoDTO;
 import com.photos.backup.dto.PhotosPaginationDTO;
+import com.photos.backup.entity.Metadata;
 import com.photos.backup.entity.Photo;
 import com.photos.backup.entity.User;
 import com.photos.backup.exception.PhotosException;
 import com.photos.backup.exception.PhotosException.PhotosExceptions;
-import com.photos.backup.repository.DirRepository;
-import com.photos.backup.repository.PhotosRepository;
-import com.photos.backup.repository.SystemConfigsRepository;
-import com.photos.backup.repository.UserRepository;
+import com.photos.backup.repository.*;
+import com.photos.backup.service.microservices.MetadataMicroService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,10 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static com.photos.backup.utils.ConversionHelperUtil.fromString;
 
@@ -33,6 +30,7 @@ public class PhotosServiceImpl implements PhotosService {
     PhotosRepository photosRepository;
     UserRepository userRepository;
     DirRepository dirRepository;
+    MetadataRepository metadataRepository;
     SystemConfigsRepository systemConfigsRepository;
 
     @Override
@@ -40,14 +38,17 @@ public class PhotosServiceImpl implements PhotosService {
         User user = UserServiceImpl.unwrapUser(userRepository.findById(fromString(userId)),userId);
         Photo photoFile =  dirRepository.savePhoto(user.getId(),file);
         photoFile.setUser(user);
-        photosRepository.save(photoFile);
+        photoFile = photosRepository.save(photoFile);
+        saveMetadata(photoFile.getId().toString(),userId,photoFile.getPath());
         return new PhotoDTO(photoFile,getDownloadBaseUrl(),getThumbnailBaseUrl());
     }
 
     @Override
     public PhotoDTO getMetadata(String photoId, String userId) {
-        Photo photo = unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
-        return new PhotoDTO(photo,getDownloadBaseUrl(),getThumbnailBaseUrl());
+        Photo photo =  unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        Metadata metadata = unwrapMetadata(metadataRepository.findById(fromString(photoId)),photoId);
+        PhotoDTO dto = new PhotoDTO(photo,getDownloadBaseUrl(),getThumbnailBaseUrl());
+        return dto.toBuilder().fileMetadata(metadata).build();
     }
 
     @Override
@@ -93,25 +94,19 @@ public class PhotosServiceImpl implements PhotosService {
         else throw  new PhotosException(PhotosExceptions.PHOTO_NOT_FOUND,photoId);
     }
 
+    public static Metadata unwrapMetadata(Optional<Metadata>data ,String photoId){
+        if(data.isPresent()) return data.get();
+        else throw new PhotosException(PhotosExceptions.PHOTO_NO_METADATA_AVAILABLE,photoId);
+    }
     private String createNextPageLink(String userId,int page){
         int nextPage=page+1;
         String baseUrl= systemConfigsRepository.getBaseUrlWithPort();
         return baseUrl+"/all/"+userId+"?page="+nextPage;
     }
 
-    private  Photo addLinks(Photo photo){
-        photo.setDownloadLink(createDownloadLink(photo.getId()));
-        photo.setThumbnailLink(createThumbnailLink(photo.getId()));
-        return photo;
+    private void saveMetadata(String photoId,String userId,String photoPath){
+        new MetadataMicroService(userId,photoId,photoPath).start();
     }
-    private String createDownloadLink(UUID uuid){
-        return systemConfigsRepository.getBaseUrlWithPort() + "/" + Paths.get("photo")
-                .resolve(uuid.toString());
-    }
-    private String createThumbnailLink(UUID uuid){
-        return systemConfigsRepository.getBaseUrlWithPort() + "/" + Paths.get("photo"  ,"thumbnail",  uuid.toString());
-    }
-
     private String getThumbnailBaseUrl(){
         return systemConfigsRepository.getBaseUrlWithPort() + "/photo/" ;
     }

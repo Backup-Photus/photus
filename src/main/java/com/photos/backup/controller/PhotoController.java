@@ -3,6 +3,7 @@ package com.photos.backup.controller;
 
 import com.photos.backup.dto.PhotoDTO;
 import com.photos.backup.dto.PhotosPaginationDTO;
+import com.photos.backup.entity.Metadata;
 import com.photos.backup.pojo.ErrorFreeDTO;
 import com.photos.backup.pojo.PhotoFile;
 import com.photos.backup.service.PhotosService;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +33,7 @@ public class PhotoController {
     private PhotosService photosService;
     @PostMapping
     private ResponseEntity<ErrorFreeDTO<PhotoDTO>> upload(@Valid @ModelAttribute PhotoFile photoFile) throws IOException {
+        System.out.println("Hit");
         ErrorFreeDTO<PhotoDTO> freeDTO = new ErrorFreeDTO<>(photosService.save(photoFile.getImage(),photoFile.getUserId()));
         return new ResponseEntity<>(freeDTO,HttpStatus.CREATED);
     }
@@ -79,5 +83,22 @@ public class PhotoController {
     private ResponseEntity<ErrorFreeDTO<?>> deletePhoto(@PathVariable String photoId){
         photosService.delete(photoId);
         return new ResponseEntity<>( ErrorFreeDTO.EmptyErrorFreeDTO,HttpStatus.OK);
+    }
+
+    @GetMapping("/metadata")
+    private Metadata getMetadata(@RequestParam String imagePath) throws IllegalAccessException {
+        return getMetadataForImage(imagePath);
+    }
+
+
+    private Metadata getMetadataForImage(String photoPath){
+        RestTemplate restTemplate =  new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://localhost:5000/metadata").queryParam("image_path",photoPath).toUriString();
+
+        ResponseEntity<Metadata> response = restTemplate.getForEntity(url, Metadata.class);
+        if(response.getStatusCode().value()==200)
+            return response.getBody();
+        return  null;
     }
 }
