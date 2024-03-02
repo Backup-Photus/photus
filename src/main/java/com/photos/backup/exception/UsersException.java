@@ -23,7 +23,10 @@ public class UsersException extends ApplicationException{
     @AllArgsConstructor
     public enum UserExceptions  implements ApplicationErrors{
         USER_NOT_FOUND(100301),
-        USER_NOT_AUTHORIZES(100302);
+        USER_NOT_AUTHORIZES(100302),
+        INVALID_CREDENTIALS(100303),
+        USER_ALREADY_EXIST(100304),
+        USER_EMAIL_ALREADY_IN_USER(100305);
 
         private final int value;
         private final String message;

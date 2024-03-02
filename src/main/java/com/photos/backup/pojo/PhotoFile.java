@@ -1,6 +1,5 @@
 package com.photos.backup.pojo;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,8 +16,6 @@ import java.util.Date;
 public class PhotoFile {
     @NotNull
     MultipartFile image;
-    @NotNull @NotBlank
-    String userId;
 
 //    @NotNull
     Date createdDate;
@@ -33,7 +30,6 @@ public class PhotoFile {
     public String toString() {
         return "PhotoFile{" +
                 "image=" + image +
-                ", userId='" + userId + '\'' +
                 ", createdDate=" + createdDate +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +

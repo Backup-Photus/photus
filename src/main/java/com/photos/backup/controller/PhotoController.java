@@ -3,8 +3,7 @@ package com.photos.backup.controller;
 
 import com.photos.backup.dto.PhotoDTO;
 import com.photos.backup.dto.PhotosPaginationDTO;
-import com.photos.backup.entity.Metadata;
-import com.photos.backup.pojo.ErrorFreeDTO;
+import com.photos.backup.dto.ResponseDTO;
 import com.photos.backup.pojo.PhotoFile;
 import com.photos.backup.service.PhotosService;
 import jakarta.validation.Valid;
@@ -14,9 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,14 +30,15 @@ public class PhotoController {
 
     private PhotosService photosService;
     @PostMapping
-    private ResponseEntity<ErrorFreeDTO<PhotoDTO>> upload(@Valid @ModelAttribute PhotoFile photoFile) throws IOException {
-        System.out.println("Hit");
-        ErrorFreeDTO<PhotoDTO> freeDTO = new ErrorFreeDTO<>(photosService.save(photoFile.getImage(),photoFile.getUserId()));
+    private ResponseEntity<ResponseDTO<PhotoDTO>> upload(@Valid @ModelAttribute PhotoFile photoFile) throws IOException {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        ResponseDTO<PhotoDTO> freeDTO = ResponseDTO.noErrorResponse(photosService.save(photoFile.getImage(),userId));
         return new ResponseEntity<>(freeDTO,HttpStatus.CREATED);
     }
 
     @GetMapping("/{photoId}")
-    private ResponseEntity<InputStreamResource> get(@PathVariable String photoId,@RequestParam String userId) throws IOException {
+    private ResponseEntity<InputStreamResource> get(@PathVariable String photoId) throws IOException {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         File file = photosService.get(photoId,userId);
         PhotoDTO photo = photosService.getMetadata(photoId,userId);
         InputStream inputStream = new FileInputStream(file);
@@ -54,7 +53,8 @@ public class PhotoController {
     }
 
     @GetMapping("/thumbnail/{photoId}")
-    private ResponseEntity<InputStreamResource> getThumbnail(@PathVariable String photoId,@RequestParam String userId) throws IOException {
+    private ResponseEntity<InputStreamResource> getThumbnail(@PathVariable String photoId) throws IOException {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         File file = photosService.getThumbnail(photoId,userId);
         PhotoDTO photo = photosService.getMetadata(photoId,userId);
         InputStream inputStream = new FileInputStream(file);
@@ -68,37 +68,23 @@ public class PhotoController {
         return new ResponseEntity<>(inputStreamResource, headers, HttpStatus.OK);
     }
     @GetMapping("/metadata/{photoId}")
-    private ResponseEntity<ErrorFreeDTO<PhotoDTO>> metadata(@PathVariable String photoId,@RequestParam String userId) {
-        ErrorFreeDTO<PhotoDTO> freeDTO = new ErrorFreeDTO<>(photosService.getMetadata(photoId,userId));
+    private ResponseEntity<ResponseDTO<PhotoDTO>> metadata(@PathVariable String photoId) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        ResponseDTO<PhotoDTO> freeDTO =ResponseDTO.noErrorResponse(photosService.getMetadata(photoId,userId));
          return new ResponseEntity<>(freeDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping("/metadata/all/{userId}")
-    private ResponseEntity<ErrorFreeDTO<PhotosPaginationDTO<PhotoDTO>>> getAllPhotosForUser(@PathVariable String userId, @RequestParam(defaultValue = "0") int page){
-        ErrorFreeDTO<PhotosPaginationDTO<PhotoDTO>> freeDTO = new ErrorFreeDTO<>(photosService.getMetadataAllForUser(userId,page));
+    @GetMapping("/metadata/all")
+    private ResponseEntity<ResponseDTO<PhotosPaginationDTO<PhotoDTO>>> getAllPhotosForUser(@RequestParam(defaultValue = "0") int page){
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        ResponseDTO<PhotosPaginationDTO<PhotoDTO>> freeDTO = ResponseDTO.noErrorResponse(photosService.getMetadataAllForUser(userId,page));
         return new ResponseEntity<>(freeDTO,HttpStatus.OK);
     }
 
     @DeleteMapping("/{photoId}")
-    private ResponseEntity<ErrorFreeDTO<?>> deletePhoto(@PathVariable String photoId){
+    private ResponseEntity<ResponseDTO<?>> deletePhoto(@PathVariable String photoId){
+        String id = SecurityContextHolder.getContext().getAuthentication().getName();
         photosService.delete(photoId);
-        return new ResponseEntity<>( ErrorFreeDTO.EmptyErrorFreeDTO,HttpStatus.OK);
-    }
-
-    @GetMapping("/metadata")
-    private Metadata getMetadata(@RequestParam String imagePath) throws IllegalAccessException {
-        return getMetadataForImage(imagePath);
-    }
-
-
-    private Metadata getMetadataForImage(String photoPath){
-        RestTemplate restTemplate =  new RestTemplate();
-
-        String url = UriComponentsBuilder.fromHttpUrl("http://localhost:5000/metadata").queryParam("image_path",photoPath).toUriString();
-
-        ResponseEntity<Metadata> response = restTemplate.getForEntity(url, Metadata.class);
-        if(response.getStatusCode().value()==200)
-            return response.getBody();
-        return  null;
+        return new ResponseEntity<>(ResponseDTO.EmptyErrorFreeResponse,HttpStatus.OK);
     }
 }

@@ -15,4 +15,11 @@ public record ErrorDTO (
     public Boolean hasError() {
         return hasError == null;
     }
+
+    public ResponseDTO<Object> toResponseDTO(){
+        return ResponseDTO.builder()
+                .result(null)
+                .error(this)
+                .build();
+    }
 }
