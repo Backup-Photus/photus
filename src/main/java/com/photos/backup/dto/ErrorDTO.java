@@ -16,6 +16,18 @@ public record ErrorDTO (
         return hasError == null;
     }
 
+    @Override
+    public String error() {
+        if(error==null) return message;
+        return error;
+    }
+
+    @Override
+    public String message() {
+        if(message==null)return "ERROR";
+        return message;
+    }
+
     public ResponseDTO<Object> toResponseDTO(){
         return ResponseDTO.builder()
                 .result(null)
