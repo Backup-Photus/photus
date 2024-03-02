@@ -12,7 +12,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,10 +21,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.io.IOException;
 import java.util.Date;
 
-@AllArgsConstructor
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     AuthenticationManager manager;
+    public AuthenticationFilter(AuthenticationManager manager){
+        this.manager=manager;
+        setFilterProcessesUrl(SecurityConstants.LOGIN_PATH);
+    }
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
        try{
@@ -59,10 +61,5 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                 .build();
         response.getWriter().write(responseDTO.toJson());
         response.getWriter().flush();
-    }
-
-    @Override
-    public void setFilterProcessesUrl(String filterProcessesUrl) {
-        super.setFilterProcessesUrl(SecurityConstants.LOGIN_PATH);
     }
 }

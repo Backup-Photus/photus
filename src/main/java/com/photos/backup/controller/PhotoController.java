@@ -1,6 +1,7 @@
 package com.photos.backup.controller;
 
 
+import com.photos.backup.constants.PhotoConstants;
 import com.photos.backup.dto.PhotoDTO;
 import com.photos.backup.dto.PhotosPaginationDTO;
 import com.photos.backup.dto.ResponseDTO;
@@ -45,7 +46,7 @@ public class PhotoController {
 
         HttpHeaders headers =  new HttpHeaders();
         headers.setContentType(MediaType.valueOf(Files.probeContentType(Paths.get(file.getPath()))));
-        headers.setContentDispositionFormData("attachment", photo.originalName());
+        headers.setContentDispositionFormData(PhotoConstants.ATTACHMENT_HEADER_NAME, photo.originalName());
 
         InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
 
@@ -61,7 +62,7 @@ public class PhotoController {
 
         HttpHeaders headers =  new HttpHeaders();
         headers.setContentType(MediaType.valueOf(Files.probeContentType(Paths.get(file.getPath()))));
-        headers.setContentDispositionFormData("attachment", photo.originalName());
+        headers.setContentDispositionFormData(PhotoConstants.ATTACHMENT_HEADER_NAME, photo.originalName());
 
         InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
 
@@ -83,8 +84,8 @@ public class PhotoController {
 
     @DeleteMapping("/{photoId}")
     private ResponseEntity<ResponseDTO<?>> deletePhoto(@PathVariable String photoId){
-        String id = SecurityContextHolder.getContext().getAuthentication().getName();
-        photosService.delete(photoId);
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        photosService.delete(photoId,userId);
         return new ResponseEntity<>(ResponseDTO.EmptyErrorFreeResponse,HttpStatus.OK);
     }
 }

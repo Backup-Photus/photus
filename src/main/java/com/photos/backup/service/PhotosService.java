@@ -9,8 +9,8 @@ import java.io.IOException;
 
 public interface PhotosService {
     PhotoDTO save(MultipartFile file, String userId) throws IOException;
-    PhotoDTO getMetadata(String id, String userId);
-    void delete(String id);
+    PhotoDTO getMetadata(String photoId, String userId);
+    void delete(String photoId,String userId);
     PhotosPaginationDTO<PhotoDTO> getMetadataAllForUser(String userId, int page);
     File get(String photoId,String userId);
 

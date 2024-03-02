@@ -46,14 +46,18 @@ public class PhotosServiceImpl implements PhotosService {
     @Override
     public PhotoDTO getMetadata(String photoId, String userId) {
         Photo photo =  unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        if(!photo.getUser().getId().toString().equals(userId))
+            throw new PhotosException(PhotosExceptions.NOT_AUTHORISED_TO_ACCESS,photoId);
         Metadata metadata = unwrapMetadata(metadataRepository.findById(fromString(photoId)),photoId);
         PhotoDTO dto = new PhotoDTO(photo,getDownloadBaseUrl(),getThumbnailBaseUrl());
         return dto.toBuilder().fileMetadata(metadata).build();
     }
 
     @Override
-    public void delete(String photoId) {
+    public void delete(String photoId,String userId) {
         Photo photo = unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        if(!photo.getUser().getId().toString().equals(userId))
+            throw new PhotosException(PhotosExceptions.NOT_AUTHORISED_TO_ACCESS,photoId);
         dirRepository.delete(photo.getPath());
         photosRepository.deleteById(fromString(photoId));
     }
@@ -80,12 +84,16 @@ public class PhotosServiceImpl implements PhotosService {
     @Override
     public File get(String photoId,String userId) {
         Photo photo =  unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        if(!photo.getUser().getId().toString().equals(userId))
+            throw new PhotosException(PhotosExceptions.NOT_AUTHORISED_TO_ACCESS,photoId);
         return dirRepository.read(photo.getPath());
     }
 
     @Override
     public File getThumbnail(String photoId, String userId) {
         Photo photo = unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
+        if(!photo.getUser().getId().toString().equals(userId))
+            throw new PhotosException(PhotosExceptions.NOT_AUTHORISED_TO_ACCESS,photoId);
         return dirRepository.read(photo.getThumbnailPath());
     }
 

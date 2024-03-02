@@ -9,4 +9,6 @@ public class PhotoConstants {
     public static final int THUMBNAIL_SIZE_Y=160;
 
     public static final String THUMBNAIL_DIRECTORY_NAME=".thumbnail";
+
+    public static final String ATTACHMENT_HEADER_NAME="attachment";
 }
