@@ -60,4 +60,9 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         response.getWriter().write(responseDTO.toJson());
         response.getWriter().flush();
     }
+
+    @Override
+    public void setFilterProcessesUrl(String filterProcessesUrl) {
+        super.setFilterProcessesUrl(SecurityConstants.LOGIN_PATH);
+    }
 }

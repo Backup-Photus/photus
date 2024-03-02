@@ -9,4 +9,6 @@ public class SecurityConstants {
 
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String RESPONSE_CONTENT_TYPE = "application/json";
+
+    public static final String LOGIN_PATH = "/user/login";
 }

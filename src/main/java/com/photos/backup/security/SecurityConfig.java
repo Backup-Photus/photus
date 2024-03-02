@@ -21,7 +21,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         AuthenticationFilter authenticationFilter=new AuthenticationFilter(authenticationManager);
-        authenticationFilter.setFilterProcessesUrl("/user/login");
         ExceptionHandlerFilter exceptionHandlerFilter = new ExceptionHandlerFilter();
         JWTAuthenticationFilter jwtAuthenticationFilter = new JWTAuthenticationFilter();
         httpSecurity.
