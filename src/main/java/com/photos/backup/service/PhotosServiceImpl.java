@@ -75,7 +75,7 @@ public class PhotosServiceImpl implements PhotosService {
         if(!photos.isLast()) {
             responseBuilder = responseBuilder
                     .nextPage((long) (page + 1))
-                    .nextPageLink(createNextPageLink(userId,page));
+                    .nextPageLink(createNextPageLink(userId,hostname,page));
 
         }
         return responseBuilder.build();
@@ -106,14 +106,13 @@ public class PhotosServiceImpl implements PhotosService {
         if(data.isPresent()) return data.get();
         else throw new PhotosException(PhotosExceptions.PHOTO_NO_METADATA_AVAILABLE,photoId);
     }
-    private String createNextPageLink(String userId,int page){
+    private String createNextPageLink(String userId,String hostname,int page){
         int nextPage=page+1;
-        String baseUrl= systemConfigsRepository.getBaseUrlWithPort();
-        return baseUrl+"/all/"+userId+"?page="+nextPage;
+        return hostname +"/all/"+userId+"?page="+nextPage;
     }
 
     private void saveMetadata(String photoId,String userId,String photoPath){
-        new MetadataMicroService(userId,photoId,photoPath).start();
+        new MetadataMicroService(userId,photoId,photoPath, systemConfigsRepository.getExtractorMicroservice()).start();
     }
     private String getThumbnailBaseUrl(String hostname){
         return hostname + "/photo/" ;

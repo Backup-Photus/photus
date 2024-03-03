@@ -11,10 +11,10 @@ import org.springframework.web.client.RestTemplate;
 @AllArgsConstructor
 public class MetadataMicroService extends Thread{
 
-    private static final String microServiceUrl = "http://localhost:9090/metadata";
-    String userId;
-    String photoId;
-    String path;
+    final String microServiceUrl;
+    final String userId;
+    final String photoId;
+    final String path;
 
     @Override
     public void run() {

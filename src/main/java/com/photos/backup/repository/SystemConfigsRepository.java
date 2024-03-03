@@ -14,12 +14,10 @@ public class SystemConfigsRepository {
     private final boolean dataDirExist;
     private final boolean hasReadPermission;
     private final boolean hasWritePermission;
-    private final int port;
-    private final String baseUrl;
+    private  final String extractorMicroservice;
 
-    public SystemConfigsRepository(String dataDirPath,String port,String baseUrl){
-        this.port= Integer.parseInt(port);
-        this.baseUrl=baseUrl;
+    public SystemConfigsRepository(String dataDirPath,String extractorMicroservice){
+        this.extractorMicroservice=extractorMicroservice;
         this.dataDirPath=dataDirPath;
         dataDirExist=checkForDataDirExist();
         hasReadPermission = checkForReadPermissions();
@@ -51,11 +49,6 @@ public class SystemConfigsRepository {
     @JsonIgnore
     public UUID getNewID(){
         return UUID.randomUUID();
-    }
-
-    @JsonIgnore
-    public String getBaseUrlWithPort(){
-        return baseUrl+":"+port;
     }
 
 }
