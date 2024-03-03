@@ -1,5 +1,6 @@
 package com.photos.backup.pojo;
 
+import io.micrometer.common.lang.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,23 +18,9 @@ public class PhotoFile {
     @NotNull
     MultipartFile image;
 
-//    @NotNull
+    @Nullable
     Date createdDate;
 
-    Double latitude;
-
-    Double longitude;
-
+    @Nullable
     String caption;
-
-    @Override
-    public String toString() {
-        return "PhotoFile{" +
-                "image=" + image +
-                ", createdDate=" + createdDate +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
-                ", caption='" + caption + '\'' +
-                '}';
-    }
 }

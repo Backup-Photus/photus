@@ -34,22 +34,22 @@ public class PhotosServiceImpl implements PhotosService {
     SystemConfigsRepository systemConfigsRepository;
 
     @Override
-    public PhotoDTO save(MultipartFile file, String userId) throws IOException {
+    public PhotoDTO save(MultipartFile file, String userId,String hostname) throws IOException {
         User user = UserServiceImpl.unwrapUser(userRepository.findById(fromString(userId)),userId);
         Photo photoFile =  dirRepository.savePhoto(user.getId(),file);
         photoFile.setUser(user);
         photoFile = photosRepository.save(photoFile);
         saveMetadata(photoFile.getId().toString(),userId,photoFile.getPath());
-        return new PhotoDTO(photoFile,getDownloadBaseUrl(),getThumbnailBaseUrl());
+        return new PhotoDTO(photoFile,getDownloadBaseUrl(hostname),getThumbnailBaseUrl(hostname));
     }
 
     @Override
-    public PhotoDTO getMetadata(String photoId, String userId) {
+    public PhotoDTO getMetadata(String photoId, String userId,String hostname) {
         Photo photo =  unwrapPhoto(photosRepository.findById(fromString(photoId)),photoId);
         if(!photo.getUser().getId().toString().equals(userId))
             throw new PhotosException(PhotosExceptions.NOT_AUTHORISED_TO_ACCESS,photoId);
         Metadata metadata = unwrapMetadata(metadataRepository.findById(fromString(photoId)),photoId);
-        PhotoDTO dto = new PhotoDTO(photo,getDownloadBaseUrl(),getThumbnailBaseUrl());
+        PhotoDTO dto = new PhotoDTO(photo,getDownloadBaseUrl(hostname),getThumbnailBaseUrl(hostname));
         return dto.toBuilder().fileMetadata(metadata).build();
     }
 
@@ -63,10 +63,10 @@ public class PhotosServiceImpl implements PhotosService {
     }
 
     @Override
-    public PhotosPaginationDTO<PhotoDTO> getMetadataAllForUser(String userId, int page) {
+    public PhotosPaginationDTO<PhotoDTO> getMetadataAllForUser(String userId, String hostname,int page) {
         PageRequest pageRequest= PageRequest.of(page, PhotoConstants.PAGE_SIZE);
         Page<Photo> photos = photosRepository.findAllByUserId(fromString(userId),pageRequest);
-        List<PhotoDTO> content = photos.getContent().stream().map(e->new PhotoDTO(e,getDownloadBaseUrl(),getThumbnailBaseUrl())).toList();
+        List<PhotoDTO> content = photos.getContent().stream().map(e->new PhotoDTO(e,getDownloadBaseUrl(hostname),getThumbnailBaseUrl(hostname))).toList();
         PhotosPaginationDTO.PhotosPaginationDTOBuilder<PhotoDTO> responseBuilder = PhotosPaginationDTO.<PhotoDTO>builder()
                 .pageSize(PhotoConstants.PAGE_SIZE)
                 .data(content)
@@ -75,7 +75,7 @@ public class PhotosServiceImpl implements PhotosService {
         if(!photos.isLast()) {
             responseBuilder = responseBuilder
                     .nextPage((long) (page + 1))
-                    .nextPageLink(createNextPageLink(userId,page));
+                    .nextPageLink(createNextPageLink(userId,hostname,page));
 
         }
         return responseBuilder.build();
@@ -106,19 +106,18 @@ public class PhotosServiceImpl implements PhotosService {
         if(data.isPresent()) return data.get();
         else throw new PhotosException(PhotosExceptions.PHOTO_NO_METADATA_AVAILABLE,photoId);
     }
-    private String createNextPageLink(String userId,int page){
+    private String createNextPageLink(String userId,String hostname,int page){
         int nextPage=page+1;
-        String baseUrl= systemConfigsRepository.getBaseUrlWithPort();
-        return baseUrl+"/all/"+userId+"?page="+nextPage;
+        return hostname +"/all/"+userId+"?page="+nextPage;
     }
 
     private void saveMetadata(String photoId,String userId,String photoPath){
-        new MetadataMicroService(userId,photoId,photoPath).start();
+        new MetadataMicroService(userId,photoId,photoPath, systemConfigsRepository.getExtractorMicroservice()).start();
     }
-    private String getThumbnailBaseUrl(){
-        return systemConfigsRepository.getBaseUrlWithPort() + "/photo/" ;
+    private String getThumbnailBaseUrl(String hostname){
+        return hostname + "/photo/" ;
     }
-    private  String getDownloadBaseUrl(){
-        return systemConfigsRepository.getBaseUrlWithPort() + "/photo/thumbnail/";
+    private  String getDownloadBaseUrl(String hostname){
+        return  hostname + "/photo/thumbnail/";
     }
 }
