@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @AllArgsConstructor
@@ -19,7 +19,6 @@ public class MetadataMicroService extends Thread{
     @Override
     public void run() {
         RestTemplate restTemplate =  new RestTemplate();
-
         LoadingMetadataDTO dto = LoadingMetadataDTO.builder()
                 .userId(userId)
                 .photoId(photoId)
@@ -28,10 +27,11 @@ public class MetadataMicroService extends Thread{
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<LoadingMetadataDTO> entity = new HttpEntity<>(dto,headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(microServiceUrl, entity, String.class);
-        if(response.getStatusCode().value()!=200){
-            System.out.println(response.getBody());
+        try{
+            HttpEntity<LoadingMetadataDTO> entity = new HttpEntity<>(dto,headers);
+            restTemplate.postForEntity(microServiceUrl, entity, String.class);
+        }catch (RestClientException restClientException){
+            System.out.println("MICROSERVICE_NOT_RUNNING");
         }
     }
 }

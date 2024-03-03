@@ -1,6 +1,7 @@
 package com.photos.backup.controller;
 
 
+import com.photos.backup.constants.ConfigurationConstants;
 import com.photos.backup.constants.PhotoConstants;
 import com.photos.backup.dto.PhotoDTO;
 import com.photos.backup.dto.PhotosPaginationDTO;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 @AllArgsConstructor
 @RestController
@@ -31,9 +33,11 @@ public class PhotoController {
 
     private PhotosService photosService;
     @PostMapping
-    private ResponseEntity<ResponseDTO<PhotoDTO>> upload(@Valid @ModelAttribute PhotoFile photoFile) throws IOException {
+    private ResponseEntity<ResponseDTO<PhotoDTO>> upload(@RequestHeader HttpHeaders headers, @Valid @ModelAttribute PhotoFile photoFile)
+            throws IOException {
+        String hostname = Objects.requireNonNull(Objects.requireNonNull(headers.get(ConfigurationConstants.HOSTNAME)).get(0));
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        ResponseDTO<PhotoDTO> freeDTO = ResponseDTO.noErrorResponse(photosService.save(photoFile.getImage(),userId));
+        ResponseDTO<PhotoDTO> freeDTO = ResponseDTO.noErrorResponse(photosService.save(photoFile.getImage(),userId,hostname));
         return new ResponseEntity<>(freeDTO,HttpStatus.CREATED);
     }
 
@@ -41,7 +45,7 @@ public class PhotoController {
     private ResponseEntity<InputStreamResource> get(@PathVariable String photoId) throws IOException {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         File file = photosService.get(photoId,userId);
-        PhotoDTO photo = photosService.getMetadata(photoId,userId);
+        PhotoDTO photo = photosService.getMetadata(photoId,userId,null);
         InputStream inputStream = new FileInputStream(file);
 
         HttpHeaders headers =  new HttpHeaders();
@@ -57,7 +61,7 @@ public class PhotoController {
     private ResponseEntity<InputStreamResource> getThumbnail(@PathVariable String photoId) throws IOException {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         File file = photosService.getThumbnail(photoId,userId);
-        PhotoDTO photo = photosService.getMetadata(photoId,userId);
+        PhotoDTO photo = photosService.getMetadata(photoId,userId,null);
         InputStream inputStream = new FileInputStream(file);
 
         HttpHeaders headers =  new HttpHeaders();
@@ -69,16 +73,18 @@ public class PhotoController {
         return new ResponseEntity<>(inputStreamResource, headers, HttpStatus.OK);
     }
     @GetMapping("/metadata/{photoId}")
-    private ResponseEntity<ResponseDTO<PhotoDTO>> metadata(@PathVariable String photoId) {
+    private ResponseEntity<ResponseDTO<PhotoDTO>> metadata(@RequestHeader HttpHeaders headers, @PathVariable String photoId) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        ResponseDTO<PhotoDTO> freeDTO =ResponseDTO.noErrorResponse(photosService.getMetadata(photoId,userId));
+        String hostname = Objects.requireNonNull(Objects.requireNonNull(headers.get(ConfigurationConstants.HOSTNAME)).get(0));
+        ResponseDTO<PhotoDTO> freeDTO =ResponseDTO.noErrorResponse(photosService.getMetadata(photoId,userId,hostname));
          return new ResponseEntity<>(freeDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/metadata/all")
-    private ResponseEntity<ResponseDTO<PhotosPaginationDTO<PhotoDTO>>> getAllPhotosForUser(@RequestParam(defaultValue = "0") int page){
+    private ResponseEntity<ResponseDTO<PhotosPaginationDTO<PhotoDTO>>> getAllPhotosForUser(@RequestHeader HttpHeaders headers, @RequestParam(defaultValue = "0") int page){
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        ResponseDTO<PhotosPaginationDTO<PhotoDTO>> freeDTO = ResponseDTO.noErrorResponse(photosService.getMetadataAllForUser(userId,page));
+        String hostname = Objects.requireNonNull(Objects.requireNonNull(headers.get(ConfigurationConstants.HOSTNAME)).get(0));
+        ResponseDTO<PhotosPaginationDTO<PhotoDTO>> freeDTO = ResponseDTO.noErrorResponse(photosService.getMetadataAllForUser(userId,hostname,page));
         return new ResponseEntity<>(freeDTO,HttpStatus.OK);
     }
 
